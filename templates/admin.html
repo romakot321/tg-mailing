@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>TGMailing | Admin Panel</title>
+    </head>
+    <body>
+        <h1 style="text-align: center; font-family: sans-serif; font-size: 2.9rem;">Рассылка</h1>
+        <div class="mailing-form">
+            <div class="filters">
+                <fieldset style="padding: 2px;">
+                    <legend>Мин. возраст:</legend>
+                    <input id="mailing-minage" style="border: none;" type="number" placeholder="Input minimal age">
+                </fieldset>
+                <fieldset style="padding: 2px;">
+                    <legend>Макс. возраст:</legend>
+                    <input id="mailing-maxage" style="border: none;" type="number" placeholder="Input maximal age">
+                </fieldset>
+                <div>
+                    <input id="mailing-gender-male" type="radio" name="mailing-gender" value="мужской">
+                    <label for="mailing-gender-male">Мужской</label>
+                    <input id="mailing-gender-female" type="radio" name="mailing-gender" value="женский">
+                    <label for="mailing-gender-female">Женский</label>
+                </div>
+            </div>
+            <textarea id="mailing-text" placeholder="Введите текст рассылки"></textarea>
+            <button onclick="createMailing()" id="create-button">Создать</button>
+        </div>
+
+        <div class="mailing-list">
+            {% for mailing in mailings %}
+                <div class="mailing-container" id="mailing-container-{{ mailing.id }}">
+                    <p class="filters">
+                        {% if mailing.gender.value %}
+                            Пол: {{ mailing.gender.value }}
+                        {% endif %}
+                        {% if mailing.min_age and mailing.max_age %}
+                            Возраст от {{ mailing.min_age }} до {{ mailing.max_age }}
+                        {% elif mailing.min_age %}
+                            Возраст от {{ mailing.min_age }}
+                        {% elif mailing.max_age %}
+                            Возраст до {{ mailing.max_age }}
+                        {% endif %}
+                    </p>
+                    <p>{{ mailing.text }}</p>
+                    <button class="delete-button" id="delete-button-{{ mailing.id }}" onclick="deleteMailing({{ mailing.id }})">X</button>
+                    <button class="send-button" id="send-button-{{ mailing.id }}" onclick="sendMailing({{ mailing.id }})">Разослать</button>
+                </div>
+            {% endfor %}
+        </div>
+    </body>
+
+<style>
+body {
+    min-width: 700px;
+    margin: 0;
+    padding: 0;
+}
+
+.mailing-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 30px 10px;
+    align-items: center;
+    justify-items: center;
+
+    padding-bottom: 15px;
+    border-bottom: 1px solid;
+}
+
+.mailing-form .filters {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+.mailing-form textarea {
+    resize: none;
+    min-width: 60.3%;
+    min-height: 18vh;
+    font-size: 1.1rem;
+}
+
+.mailing-list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+
+    margin: 10vh 20px;
+}
+
+.mailing-container {
+    display: grid;
+    padding: 0 15px;
+    grid-template-columns: 1fr 30px;
+    grid-template-rows: 1fr 1fr 1fr;
+
+    width: 40%;
+    height: 40%;
+    border-radius: 12px;
+    border: 1px solid;
+}
+
+.mailing-container .filters {
+    grid-column: 1;
+    grid-row: 1;
+    width: 100%;
+}
+.mailing-container .delete-button {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+}
+.mailing-container .send-button {
+    grid-column: 1;
+    grid-row: 3;
+    width: 105%;
+    margin-left: 5%;
+}
+
+body p, body button, body label {
+    font-family: sans-serif;
+    font-size: 1.1rem;
+}
+
+button {
+    background-color: black;
+    color: white;
+    border-radius: 10px;
+    padding: 5px;
+    width: 30%;
+    height: 35px;
+    justify-self: center;
+}
+
+input {
+    border: 1px solid;
+    padding: 5px;
+    font-family: sans-serif;
+    font-size: 1.1rem;
+}
+</style>
+
+<script>
+  function createMailing() {
+    const genderElement = document.querySelector('input[name="mailing-gender"]:checked');
+    const minAgeElement = document.getElementById("mailing-minage");
+    const maxAgeElement = document.getElementById("mailing-maxage");
+    const textElement = document.getElementById("mailing-text");
+    const createButton = document.getElementById("create-button");
+
+    const data = {
+        gender: genderElement ? genderElement.value : null,
+        min_age: minAgeElement.value ? minAgeElement.value : null,
+        max_age: maxAgeElement.value ? maxAgeElement.value : null,
+        text: textElement.value
+    };
+    console.log('Data to send:', data);
+    createButton.innerText = "Отправка...";
+
+    fetch('http://127.0.0.1:8000/api/mailing', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Success:', data);
+        createButton.innerText = "Отправлено!";
+        textElement.value = "";
+
+        setTimeout(() => { createButton.innerText = "Создать" }, 2000);
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+        createButton.innerText = "Ошибка";
+    });
+  }
+
+  function sendMailing(mailingId) {
+    const button = document.getElementById("send-button-" + mailingId);
+
+    button.innerText = "Отправка...";
+    fetch('http://127.0.0.1:8000/api/mailing/' + mailingId + '/send', {
+        method: 'POST',
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Success:', data);
+        button.innerText = "Отправлено!";
+        setTimeout(() => { button.innerText = "Разослать"; }, 2000);
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+        button.innerText = "Ошибка";
+    });
+  }
+
+  function deleteMailing(mailingId) {
+    const button = document.getElementById("delete-button-" + mailingId);
+    const mailingContainer = document.getElementById("mailing-container-" + mailingId);
+
+    button.innerText = ".";
+    fetch('http://127.0.0.1:8000/api/mailing/' + mailingId, {
+        method: 'DELETE',
+    })
+    .then(data => {
+        console.log('Success:', data);
+        mailingContainer.style.display = "none";
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+        button.innerText = "Ошибка";
+    });
+  }
+</script>
+</html>
