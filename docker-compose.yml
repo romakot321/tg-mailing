@@ -4,9 +4,7 @@ services:
   app:
     build:
       context: ./
-      args:
-        VIDEO_DIRECTORY: ${VIDEO_DIRECTORY}
-    container_name: video_app
+    container_name: tgmailing_app
     depends_on:
       - postgres
     env_file:
@@ -15,22 +13,18 @@ services:
     networks:
       global_network:
       default:
-    volumes:
-      - videoapi-storage:/home/python/${VIDEO_DIRECTORY}
+    ports:
+      - "8321:80"
 
   postgres:
     image: postgres:latest
-    container_name: video_db
+    container_name: tgmailing_db
     restart: always
     env_file:
       - .env
     networks:
       default:
-    ports:
-      - "5432:5432"
 
 networks:
   global_network:
     external: true
-volumes:
-  videoapi-storage:

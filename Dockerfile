@@ -5,7 +5,6 @@ RUN pip3 wheel gunicorn
 
 
 FROM python:3.13-slim
-ARG VIDEO_DIRECTORY
 EXPOSE 80
 
 # Setup user
@@ -23,12 +22,11 @@ COPY --from=PackageBuilder ./*.whl ./wheels/
 RUN pip3 install ./wheels/*.whl --no-warn-script-location
 
 COPY setup.py ./
-RUN mkdir -p ${VIDEO_DIRECTORY}
-COPY ./app ./app
+COPY ./ ./
 RUN pip3 install .
 
 ENV PATH="$PATH:/home/python/.local/bin"
-CMD cd app/db && \
+CMD cd db && \
     alembic -c ./alembic.prod.ini upgrade head && \
     cd /home/python && \
-    gunicorn app.main:fastapi_app -w 1 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:80 --forwarded-allow-ips="*"
+    gunicorn api.main:fastapi_app -w 1 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:80 --forwarded-allow-ips="*"
