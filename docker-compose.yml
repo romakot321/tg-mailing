@@ -13,8 +13,6 @@ services:
     networks:
       global_network:
       default:
-    ports:
-      - "8321:80"
 
   postgres:
     image: postgres:latest

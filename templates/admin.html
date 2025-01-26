@@ -167,7 +167,7 @@ input {
     console.log('Data to send:', data);
     createButton.innerText = "Отправка...";
 
-    fetch('http://127.0.0.1:8000/api/mailing', {
+    fetch('https://logger.webberapp.shop/api/mailing', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -192,7 +192,7 @@ input {
     const button = document.getElementById("send-button-" + mailingId);
 
     button.innerText = "Отправка...";
-    fetch('http://127.0.0.1:8000/api/mailing/' + mailingId + '/send', {
+    fetch('https://logger.webberapp.shop/api/mailing/' + mailingId + '/send', {
         method: 'POST',
     })
     .then(response => response.json())
@@ -212,7 +212,7 @@ input {
     const mailingContainer = document.getElementById("mailing-container-" + mailingId);
 
     button.innerText = ".";
-    fetch('http://127.0.0.1:8000/api/mailing/' + mailingId, {
+    fetch('https://logger.webberapp.shop/api/mailing/' + mailingId, {
         method: 'DELETE',
     })
     .then(data => {
